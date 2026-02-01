@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket  = "tf-state-dev-bucket"
+    bucket  = "backend-tf-githubactions"
     prefix  = "iac/dev"
   }
 }
