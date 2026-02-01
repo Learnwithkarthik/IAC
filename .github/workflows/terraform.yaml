@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  id-token: write   # REQUIRED for OIDC
+
 jobs:
   terraform:
     name: Terraform Validate (Dev)
@@ -18,16 +22,27 @@ jobs:
         working-directory: environments/dev
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Authenticate to GCP using Workload Identity (NO KEYS)
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/274706747500/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: terraform-github@terraform-482817.iam.gserviceaccount.com
+
+      # 3️⃣ Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
 
+      # 4️⃣ Terraform Init (uses GCS backend + ADC)
       - name: Terraform Init
         run: terraform init -input=false
 
+      # 5️⃣ Terraform Validate
       - name: Terraform Validate
         run: terraform validate
